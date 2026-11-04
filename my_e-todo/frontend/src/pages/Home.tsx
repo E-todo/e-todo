@@ -1,6 +1,10 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { tasks } from '../data/tasks'
+import { getTasks } from '../api/tasks'
+import type { Task } from '../types/task'
 export default function Home() {
+  const [tasks, setTasks] = useState<Task[]>([])
+  useEffect(() => { getTasks().then(setTasks).catch(() => setTasks([])) }, [])
   const todo = tasks.filter(task => task.status === 'todo').length
   const progress = tasks.filter(task => task.status === 'in_progress').length
   const completed = tasks.filter(task => task.status === 'completed').length

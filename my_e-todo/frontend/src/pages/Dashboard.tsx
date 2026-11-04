@@ -1,7 +1,7 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent, DragEvent } from "react";
-import { tasks as initialTasks } from "../data/tasks";
+import { getTasks, createTask, updateTask, deleteTask } from "../api/tasks";
 import type { Task, TaskStatus, TaskPriority } from "../types/task";
 
 const sections: { status: TaskStatus; title: string }[] = [
@@ -103,7 +103,9 @@ function TaskItem({
 }
 
 export default function Dashboard() {
-    const [taskList, setTaskList] = useState<Task[]>(initialTasks);
+    const [taskList, setTaskList] = useState<Task[]>([]);
+    const [message, setMessage] = useState("");
+    useEffect(() => { getTasks().then(setTaskList).catch(error => setMessage(error.message)); }, []);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
 
@@ -176,7 +178,7 @@ export default function Dashboard() {
         setIsFormOpen(true);
     }
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
         const taskData = {
@@ -188,22 +190,18 @@ export default function Dashboard() {
 
         if (!taskData.title) return;
 
-        if (editingTaskId !== null) {
-            setTaskList((currentTasks) =>
-                currentTasks.map((task) =>
-                    task.id === editingTaskId
-                        ? { ...task, ...taskData }
-                        : task,
-                ),
-            );
-        } else {
-            const newTask: Task = {
-                id: Date.now(),
-                ...taskData,
-                status: "todo",
-            };
-
-            setTaskList((currentTasks) => [...currentTasks, newTask]);
+        try {
+            if (editingTaskId !== null) {
+                const updated = await updateTask(editingTaskId, taskData);
+                setTaskList(current => current.map(task => task.id === editingTaskId ? { ...task, ...updated, priority } : task));
+            } else {
+                const created = await createTask({ ...taskData, status: "todo" });
+                setTaskList(current => [...current, created]);
+            }
+            setMessage("");
+        } catch (error) {
+            setMessage(error instanceof Error ? error.message : "Enregistrement impossible.");
+            return;
         }
 
         resetForm();
@@ -211,26 +209,22 @@ export default function Dashboard() {
 
     // SUPPRESSION
 
-    function handleDelete(id: number) {
+    async function handleDelete(id: number) {
         const confirmed = window.confirm(
             "Voulez-vous vraiment supprimer cette tâche ?",
         );
 
         if (!confirmed) return;
 
-        setTaskList((currentTasks) =>
-            currentTasks.filter((task) => task.id !== id),
-        );
+        try { await deleteTask(id); setTaskList(currentTasks => currentTasks.filter(task => task.id !== id)); }
+        catch (error) { setMessage(error instanceof Error ? error.message : "Suppression impossible."); }
     }
 
     // CHANGEMENT DE STATUT
 
-    function handleStatusChange(id: number, status: TaskStatus) {
-        setTaskList((currentTasks) =>
-            currentTasks.map((task) =>
-                task.id === id ? { ...task, status } : task,
-            ),
-        );
+    async function handleStatusChange(id: number, status: TaskStatus) {
+        try { const updated = await updateTask(id, { status }); setTaskList(current => current.map(task => task.id === id ? { ...task, ...updated } : task)); }
+        catch (error) { setMessage(error instanceof Error ? error.message : "Modification impossible."); }
     }
 
     // TRI DES TÂCHES PAR PRIORITÉ
@@ -255,6 +249,7 @@ export default function Dashboard() {
                     </span>
                 </header>
 
+                {message && <p className="auth-message">{message}</p>}
                 <div className="task-groups">
                     {sections.map((section) => {
                         const sectionTasks = sortedTasks.filter(

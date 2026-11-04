@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { register } from '../api/auth'
 
 export default function Register() {
   const [name, setName] = useState('')
@@ -7,10 +8,16 @@ export default function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setMessage('La création du compte sera activée lors du branchement du backend.')
+    setLoading(true)
+    setMessage('')
+    try { await register(firstname, name, email, password); navigate('/home') }
+    catch (error) { setMessage(error instanceof Error ? error.message : 'Inscription impossible.') }
+    finally { setLoading(false) }
   }
 
   return (
@@ -71,7 +78,7 @@ export default function Register() {
           {message && <p className="auth-message">{message}</p>}
 
           <button type="submit" className="auth-submit">
-            Créer mon compte
+            {loading ? 'Création...' : 'Créer mon compte'}
           </button>
         </form>
 

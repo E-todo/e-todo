@@ -1,14 +1,21 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { login } from '../api/auth'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setMessage('La connexion sera activée lors du branchement du backend.')
+    setLoading(true)
+    setMessage('')
+    try { await login(email, password); navigate('/home') }
+    catch (error) { setMessage(error instanceof Error ? error.message : 'Connexion impossible.') }
+    finally { setLoading(false) }
   }
 
   return (
@@ -48,7 +55,7 @@ export default function Login() {
           {message && <p className="auth-message">{message}</p>}
 
           <button type="submit" className="auth-submit">
-            Se connecter
+            {loading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
 
