@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "npx prettier --write \"src/**/*.{ts,tsx,css}\" \"*.{ts,json,html,md}\"",
+    "format:check": "npx prettier --check \"src/**/*.{ts,tsx,css}\" \"*.{ts,json,html,md}\""
   },
   "dependencies": {
     "react": "^19.3.1",
