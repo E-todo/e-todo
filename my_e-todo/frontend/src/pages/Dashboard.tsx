@@ -1,4 +1,6 @@
+
 import { useState } from "react";
+import type { FormEvent, DragEvent } from "react";
 import { tasks as initialTasks } from "../data/tasks";
 import type { Task, TaskStatus, TaskPriority } from "../types/task";
 
@@ -27,9 +29,32 @@ function formatDate(date: string) {
     }).format(new Date(`${date}T12:00:00`));
 }
 
-function TaskItem({ task }: { task: Task }) {
+type TaskItemProps = {
+    task: Task;
+    onEdit: (task: Task) => void;
+    onDelete: (id: number) => void;
+    onDragStart: (event: DragEvent<HTMLElement>, id: number) => void;
+    onDragEnd: () => void;
+    isDragging: boolean;
+};
+
+function TaskItem({
+    task,
+    onEdit,
+    onDelete,
+    onDragStart,
+    onDragEnd,
+    isDragging,
+}: TaskItemProps) {
     return (
-        <article className={`task-item status-${task.status}`}>
+        <article
+            className={`task-item status-${task.status} ${
+                isDragging ? "is-dragging" : ""
+            }`}
+            draggable
+            onDragStart={(event) => onDragStart(event, task.id)}
+            onDragEnd={onDragEnd}
+        >
             <div className="task-main">
                 <div className="task-title-row">
                     <span
@@ -39,16 +64,40 @@ function TaskItem({ task }: { task: Task }) {
                     />
                     <h3>{task.title}</h3>
                 </div>
+
                 {task.description && <p>{task.description}</p>}
+
+                {task.dueDate && (
+                    <div className="task-details">
+                        <span className="task-date">
+                            Échéance : {formatDate(task.dueDate)}
+                        </span>
+                    </div>
+                )}
             </div>
 
-            {task.dueDate && (
-                <div className="task-details">
-                    <span className="task-date">
-                        {formatDate(task.dueDate)}
-                    </span>
-                </div>
-            )}
+            <div className="task-actions">
+
+                <button
+                    type="button"
+                    className="task-action-button"
+                    onClick={() => onEdit(task)}
+                    aria-label={`Modifier ${task.title}`}
+                    title="Modifier"
+                >
+                    Modifier
+                </button>
+
+                <button
+                    type="button"
+                    className="task-action-button task-delete-button"
+                    onClick={() => onDelete(task.id)}
+                    aria-label={`Supprimer ${task.title}`}
+                    title="Supprimer"
+                >
+                    Supprimer
+                </button>
+            </div>
         </article>
     );
 }
@@ -56,31 +105,135 @@ function TaskItem({ task }: { task: Task }) {
 export default function Dashboard() {
     const [taskList, setTaskList] = useState<Task[]>(initialTasks);
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [dueDate, setDueDate] = useState("");
     const [priority, setPriority] = useState<TaskPriority>("medium");
 
-    function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    const [draggedTaskId, setDraggedTaskId] = useState<number | null>(null);
+
+    // DRAG AND DROP
+
+    function handleDragStart(
+        event: DragEvent<HTMLElement>,
+        id: number,
+    ) {
+        setDraggedTaskId(id);
+
+        event.dataTransfer.setData("text/plain", String(id));
+        event.dataTransfer.effectAllowed = "move";
+    }
+
+    function handleDragEnd() {
+        setDraggedTaskId(null);
+    }
+
+    function handleDrop(
+        event: DragEvent<HTMLElement>,
+        newStatus: TaskStatus,
+    ) {
         event.preventDefault();
 
-        const newTask: Task = {
-            id: Date.now(),
-            title: title.trim(),
-            description: description.trim(),
-            status: "todo",
-            priority,
-            dueDate: dueDate || undefined,
-        };
+        const id = Number(event.dataTransfer.getData("text/plain"));
 
-        setTaskList((currentTasks) => [...currentTasks, newTask]);
+        if (!Number.isInteger(id) || id <= 0) {
+            setDraggedTaskId(null);
+            return;
+        }
 
+        handleStatusChange(id, newStatus);
+        setDraggedTaskId(null);
+    }
+
+    // FORMULAIRE
+
+    function resetForm() {
         setTitle("");
         setDescription("");
         setDueDate("");
         setPriority("medium");
+        setEditingTaskId(null);
         setIsFormOpen(false);
     }
+
+    function openCreateForm() {
+        setTitle("");
+        setDescription("");
+        setDueDate("");
+        setPriority("medium");
+        setEditingTaskId(null);
+        setIsFormOpen(true);
+    }
+
+    function openEditForm(task: Task) {
+        setTitle(task.title);
+        setDescription(task.description);
+        setDueDate(task.dueDate ?? "");
+        setPriority(task.priority);
+        setEditingTaskId(task.id);
+        setIsFormOpen(true);
+    }
+
+    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+
+        const taskData = {
+            title: title.trim(),
+            description: description.trim(),
+            dueDate: dueDate || undefined,
+            priority,
+        };
+
+        if (!taskData.title) return;
+
+        if (editingTaskId !== null) {
+            setTaskList((currentTasks) =>
+                currentTasks.map((task) =>
+                    task.id === editingTaskId
+                        ? { ...task, ...taskData }
+                        : task,
+                ),
+            );
+        } else {
+            const newTask: Task = {
+                id: Date.now(),
+                ...taskData,
+                status: "todo",
+            };
+
+            setTaskList((currentTasks) => [...currentTasks, newTask]);
+        }
+
+        resetForm();
+    }
+
+    // SUPPRESSION
+
+    function handleDelete(id: number) {
+        const confirmed = window.confirm(
+            "Voulez-vous vraiment supprimer cette tâche ?",
+        );
+
+        if (!confirmed) return;
+
+        setTaskList((currentTasks) =>
+            currentTasks.filter((task) => task.id !== id),
+        );
+    }
+
+    // CHANGEMENT DE STATUT
+
+    function handleStatusChange(id: number, status: TaskStatus) {
+        setTaskList((currentTasks) =>
+            currentTasks.map((task) =>
+                task.id === id ? { ...task, status } : task,
+            ),
+        );
+    }
+
+    // TRI DES TÂCHES PAR PRIORITÉ
 
     const sortedTasks = [...taskList].sort(
         (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority],
@@ -112,6 +265,13 @@ export default function Dashboard() {
                             <section
                                 className={`task-group task-group-${section.status}`}
                                 key={section.status}
+                                onDragOver={(event) => {
+                                    event.preventDefault();
+                                    event.dataTransfer.dropEffect = "move";
+                                }}
+                                onDrop={(event) =>
+                                    handleDrop(event, section.status)
+                                }
                             >
                                 <div className="task-group-heading">
                                     <h3>{section.title}</h3>
@@ -124,6 +284,13 @@ export default function Dashboard() {
                                             <TaskItem
                                                 key={task.id}
                                                 task={task}
+                                                onEdit={openEditForm}
+                                                onDelete={handleDelete}
+                                                onDragStart={handleDragStart}
+                                                onDragEnd={handleDragEnd}
+                                                isDragging={
+                                                    draggedTaskId === task.id
+                                                }
                                             />
                                         ))}
                                     </div>
@@ -143,7 +310,7 @@ export default function Dashboard() {
                         className="add-task-button"
                         aria-label="Ajouter une tâche"
                         title="Ajouter une tâche"
-                        onClick={() => setIsFormOpen(true)}
+                        onClick={openCreateForm}
                     >
                         +
                     </button>
@@ -155,17 +322,22 @@ export default function Dashboard() {
                     className="modal-overlay"
                     onMouseDown={(event) => {
                         if (event.target === event.currentTarget) {
-                            setIsFormOpen(false);
+                            resetForm();
                         }
                     }}
                 >
                     <form className="task-form" onSubmit={handleSubmit}>
                         <div className="task-form-header">
-                            <h2>Nouvelle tâche</h2>
+                            <h2>
+                                {editingTaskId !== null
+                                    ? "Modifier la tâche"
+                                    : "Nouvelle tâche"}
+                            </h2>
+
                             <button
                                 type="button"
                                 className="close-modal-button"
-                                onClick={() => setIsFormOpen(false)}
+                                onClick={resetForm}
                                 aria-label="Fermer"
                             >
                                 ×
@@ -183,7 +355,9 @@ export default function Dashboard() {
                             maxLength={120}
                         />
 
-                        <label htmlFor="task-description">Description</label>
+                        <label htmlFor="task-description">
+                            Description
+                        </label>
                         <textarea
                             id="task-description"
                             value={description}
@@ -201,7 +375,9 @@ export default function Dashboard() {
                             id="task-date"
                             type="date"
                             value={dueDate}
-                            onChange={(event) => setDueDate(event.target.value)}
+                            onChange={(event) =>
+                                setDueDate(event.target.value)
+                            }
                         />
 
                         <label htmlFor="task-priority">Priorité</label>
@@ -209,7 +385,9 @@ export default function Dashboard() {
                             id="task-priority"
                             value={priority}
                             onChange={(event) =>
-                                setPriority(event.target.value as TaskPriority)
+                                setPriority(
+                                    event.target.value as TaskPriority,
+                                )
                             }
                         >
                             <option value="high">Élevée</option>
@@ -221,12 +399,18 @@ export default function Dashboard() {
                             <button
                                 type="button"
                                 className="cancel-task-button"
-                                onClick={() => setIsFormOpen(false)}
+                                onClick={resetForm}
                             >
                                 Annuler
                             </button>
-                            <button type="submit" className="save-task-button">
-                                Ajouter la tâche
+
+                            <button
+                                type="submit"
+                                className="save-task-button"
+                            >
+                                {editingTaskId !== null
+                                    ? "Enregistrer"
+                                    : "Ajouter la tâche"}
                             </button>
                         </div>
                     </form>
