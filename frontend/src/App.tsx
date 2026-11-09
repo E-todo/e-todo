@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
     BrowserRouter,
-    Link,
     Navigate,
     Route,
     Routes,
@@ -16,21 +15,36 @@ import ProfilePage from "./pages/ProfilePage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import { getUser, isLoggedIn, logout, type User } from "./api/auth";
-type Theme = "blue" | "lavender" | "peach" | "sage";
+type Theme = "blue" | "purple" | "green" | "orange" | "neutral";
+type Mode = "light" | "dark";
+
 function getInitialTheme(): Theme {
     const saved = window.localStorage.getItem("my-e-todo-theme");
-    return saved === "lavender" || saved === "peach" || saved === "sage"
+    return saved === "purple" ||
+        saved === "green" ||
+        saved === "orange" ||
+        saved === "neutral"
         ? saved
         : "blue";
+}
+
+function getInitialMode(): Mode {
+    return window.localStorage.getItem("my-e-todo-mode") === "dark"
+        ? "dark"
+        : "light";
 }
 function AppLayout({
     theme,
     onThemeChange,
+    mode,
+    onModeChange,
     user,
     onLogout,
 }: {
     theme: Theme;
     onThemeChange: (theme: Theme) => void;
+    mode: Mode;
+    onModeChange: (mode: Mode) => void;
     user: User;
     onLogout: () => void;
 }) {
@@ -38,27 +52,17 @@ function AppLayout({
     const navigate = useNavigate();
     return (
         <div className="app">
-            <Sidebar theme={theme} onThemeChange={onThemeChange} />
-            <div className="top-user-controls">
-                <Link
-                    to="/profile"
-                    className="top-user-avatar"
-                    aria-label="Ouvrir le profil"
-                    title="Profil"
-                >
-                    {user.firstname.slice(0, 1).toUpperCase()}
-                </Link>
-                <button
-                    type="button"
-                    className="top-logout-button"
-                    onClick={() => {
-                        onLogout();
-                        navigate("/login");
-                    }}
-                >
-                    Déconnexion
-                </button>
-            </div>
+            <Sidebar
+                theme={theme}
+                onThemeChange={onThemeChange}
+                mode={mode}
+                onModeChange={onModeChange}
+                user={user}
+                onLogout={() => {
+                    onLogout();
+                    navigate("/login");
+                }}
+            />
             {location.pathname === "/home" && <Home />}
             {location.pathname === "/dashboard" && <Dashboard />}
             {location.pathname === "/profile" && (
@@ -73,9 +77,13 @@ function AppLayout({
 function ProtectedLayout({
     theme,
     onThemeChange,
+    mode,
+    onModeChange,
 }: {
     theme: Theme;
     onThemeChange: (theme: Theme) => void;
+    mode: Mode;
+    onModeChange: (mode: Mode) => void;
 }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
@@ -99,6 +107,8 @@ function ProtectedLayout({
         <AppLayout
             theme={theme}
             onThemeChange={onThemeChange}
+            mode={mode}
+            onModeChange={onModeChange}
             user={user}
             onLogout={() => {
                 logout();
@@ -109,10 +119,21 @@ function ProtectedLayout({
 }
 export default function App() {
     const [theme, setTheme] = useState<Theme>(getInitialTheme);
+    const [mode, setMode] = useState<Mode>(getInitialMode);
+
     useEffect(() => {
         document.documentElement.dataset.theme = theme;
+        document.documentElement.dataset.mode = mode;
         window.localStorage.setItem("my-e-todo-theme", theme);
-    }, [theme]);
+        window.localStorage.setItem("my-e-todo-mode", mode);
+
+        document.documentElement.classList.add("theme-changing");
+        const timeout = window.setTimeout(() => {
+            document.documentElement.classList.remove("theme-changing");
+        }, 450);
+
+        return () => window.clearTimeout(timeout);
+    }, [theme, mode]);
     return (
         <BrowserRouter>
             <Routes>
@@ -131,6 +152,8 @@ export default function App() {
                         <ProtectedLayout
                             theme={theme}
                             onThemeChange={setTheme}
+                            mode={mode}
+                            onModeChange={setMode}
                         />
                     }
                 />
@@ -140,6 +163,8 @@ export default function App() {
                         <ProtectedLayout
                             theme={theme}
                             onThemeChange={setTheme}
+                            mode={mode}
+                            onModeChange={setMode}
                         />
                     }
                 />
@@ -149,6 +174,8 @@ export default function App() {
                         <ProtectedLayout
                             theme={theme}
                             onThemeChange={setTheme}
+                            mode={mode}
+                            onModeChange={setMode}
                         />
                     }
                 />

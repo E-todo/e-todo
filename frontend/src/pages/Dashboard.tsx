@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import type { FormEvent, DragEvent } from "react";
 import { getTasks, createTask, updateTask, deleteTask } from "../api/tasks";
@@ -77,7 +76,6 @@ function TaskItem({
             </div>
 
             <div className="task-actions">
-
                 <button
                     type="button"
                     className="task-action-button"
@@ -105,7 +103,11 @@ function TaskItem({
 export default function Dashboard() {
     const [taskList, setTaskList] = useState<Task[]>([]);
     const [message, setMessage] = useState("");
-    useEffect(() => { getTasks().then(setTaskList).catch(error => setMessage(error.message)); }, []);
+    useEffect(() => {
+        getTasks()
+            .then(setTaskList)
+            .catch((error) => setMessage(error.message));
+    }, []);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
 
@@ -118,10 +120,7 @@ export default function Dashboard() {
 
     // DRAG AND DROP
 
-    function handleDragStart(
-        event: DragEvent<HTMLElement>,
-        id: number,
-    ) {
+    function handleDragStart(event: DragEvent<HTMLElement>, id: number) {
         setDraggedTaskId(id);
 
         event.dataTransfer.setData("text/plain", String(id));
@@ -132,10 +131,7 @@ export default function Dashboard() {
         setDraggedTaskId(null);
     }
 
-    function handleDrop(
-        event: DragEvent<HTMLElement>,
-        newStatus: TaskStatus,
-    ) {
+    function handleDrop(event: DragEvent<HTMLElement>, newStatus: TaskStatus) {
         event.preventDefault();
 
         const id = Number(event.dataTransfer.getData("text/plain"));
@@ -193,14 +189,27 @@ export default function Dashboard() {
         try {
             if (editingTaskId !== null) {
                 const updated = await updateTask(editingTaskId, taskData);
-                setTaskList(current => current.map(task => task.id === editingTaskId ? { ...task, ...updated, priority } : task));
+                setTaskList((current) =>
+                    current.map((task) =>
+                        task.id === editingTaskId
+                            ? { ...task, ...updated, priority }
+                            : task,
+                    ),
+                );
             } else {
-                const created = await createTask({ ...taskData, status: "todo" });
-                setTaskList(current => [...current, created]);
+                const created = await createTask({
+                    ...taskData,
+                    status: "todo",
+                });
+                setTaskList((current) => [...current, created]);
             }
             setMessage("");
         } catch (error) {
-            setMessage(error instanceof Error ? error.message : "Enregistrement impossible.");
+            setMessage(
+                error instanceof Error
+                    ? error.message
+                    : "Enregistrement impossible.",
+            );
             return;
         }
 
@@ -216,15 +225,37 @@ export default function Dashboard() {
 
         if (!confirmed) return;
 
-        try { await deleteTask(id); setTaskList(currentTasks => currentTasks.filter(task => task.id !== id)); }
-        catch (error) { setMessage(error instanceof Error ? error.message : "Suppression impossible."); }
+        try {
+            await deleteTask(id);
+            setTaskList((currentTasks) =>
+                currentTasks.filter((task) => task.id !== id),
+            );
+        } catch (error) {
+            setMessage(
+                error instanceof Error
+                    ? error.message
+                    : "Suppression impossible.",
+            );
+        }
     }
 
     // CHANGEMENT DE STATUT
 
     async function handleStatusChange(id: number, status: TaskStatus) {
-        try { const updated = await updateTask(id, { status }); setTaskList(current => current.map(task => task.id === id ? { ...task, ...updated } : task)); }
-        catch (error) { setMessage(error instanceof Error ? error.message : "Modification impossible."); }
+        try {
+            const updated = await updateTask(id, { status });
+            setTaskList((current) =>
+                current.map((task) =>
+                    task.id === id ? { ...task, ...updated } : task,
+                ),
+            );
+        } catch (error) {
+            setMessage(
+                error instanceof Error
+                    ? error.message
+                    : "Modification impossible.",
+            );
+        }
     }
 
     // TRI DES TÂCHES PAR PRIORITÉ
@@ -350,9 +381,7 @@ export default function Dashboard() {
                             maxLength={120}
                         />
 
-                        <label htmlFor="task-description">
-                            Description
-                        </label>
+                        <label htmlFor="task-description">Description</label>
                         <textarea
                             id="task-description"
                             value={description}
@@ -370,9 +399,7 @@ export default function Dashboard() {
                             id="task-date"
                             type="date"
                             value={dueDate}
-                            onChange={(event) =>
-                                setDueDate(event.target.value)
-                            }
+                            onChange={(event) => setDueDate(event.target.value)}
                         />
 
                         <label htmlFor="task-priority">Priorité</label>
@@ -380,9 +407,7 @@ export default function Dashboard() {
                             id="task-priority"
                             value={priority}
                             onChange={(event) =>
-                                setPriority(
-                                    event.target.value as TaskPriority,
-                                )
+                                setPriority(event.target.value as TaskPriority)
                             }
                         >
                             <option value="high">Élevée</option>
@@ -399,10 +424,7 @@ export default function Dashboard() {
                                 Annuler
                             </button>
 
-                            <button
-                                type="submit"
-                                className="save-task-button"
-                            >
+                            <button type="submit" className="save-task-button">
                                 {editingTaskId !== null
                                     ? "Enregistrer"
                                     : "Ajouter la tâche"}
