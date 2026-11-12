@@ -9,3 +9,4 @@ export type Task = {
   priority: TaskPriority
   dueDate?: string
 }
+export const statusLabels = { todo: "\u00c0 faire", in_progress: "En cours", completed: "Termin\u00e9e" } as const;

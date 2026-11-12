@@ -11,6 +11,7 @@ export default function Login() {
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        if (loading) return;
         setLoading(true);
         setMessage("");
         try {
@@ -63,7 +64,7 @@ export default function Login() {
 
                     {message && <p className="auth-message">{message}</p>}
 
-                    <button type="submit" className="auth-submit">
+                    <button type="submit" className="auth-submit" disabled={loading}>
                         {loading ? "Connexion..." : "Se connecter"}
                     </button>
                 </form>

@@ -1,3 +1,7 @@
+/* Gloock : police de titres gratuite (Google Fonts, SIL OFL).
+   Chargée en ligne ; Salmond puis Georgia assurent le repli hors connexion. */
+@import url('https://fonts.googleapis.com/css2?family=Gloock&family=Manrope:wght@400;500;600;700;800&display=swap');
+
 @font-face {
     font-family: "Salmond";
     src: url("../assets/fonts/Salmond-Light.ttf") format("truetype");
@@ -29,7 +33,7 @@ body,
 :root,
 :root[data-theme="blue"] {
     color-scheme: light;
-    --page-bg-image: url("../assets/images/blue.png");
+    --page-bg-image: url("../assets/images/theme_1/blue.png");
     --page-bg: #dceaf5;
     --text: #29465c;
     --text-soft: #526d80;
@@ -68,7 +72,7 @@ body,
 }
 
 :root[data-theme="purple"] {
-    --page-bg-image: url("../assets/images/purple.png");
+    --page-bg-image: url("../assets/images/theme_1/purple.png");
     --page-bg: #e5e7fa;
     --text: #49366c;
     --text-soft: #76648f;
@@ -87,7 +91,7 @@ body,
 }
 
 :root[data-theme="green"] {
-    --page-bg-image: url("../assets/images/green.png");
+    --page-bg-image: url("../assets/images/theme_1/green.png");
     --page-bg: #e5f5e0;
     --text: #214b30;
     --text-soft: #426c4e;
@@ -106,7 +110,7 @@ body,
 }
 
 :root[data-theme="orange"] {
-    --page-bg-image: url("../assets/images/orange.jpeg");
+    --page-bg-image: url("../assets/images/theme_1/orange.jpeg");
     --page-bg: #fff0e4;
     --text: #75452f;
     --text-soft: #956b56;
@@ -125,7 +129,7 @@ body,
 }
 
 :root[data-theme="neutral"] {
-    --page-bg-image: url("../assets/images/white.png");
+    --page-bg-image: url("../assets/images/theme_1/white.png");
     --page-bg: #f5f5f5;
     --text: #303030;
     --text-soft: #595959;
@@ -177,7 +181,7 @@ body,
 }
 
 :root[data-theme="blue"][data-mode="dark"] {
-    --page-bg-image: url("../assets/images/dark_blue.png");
+    --page-bg-image: url("../assets/images/theme_1/dark_blue.png");
     --accent: #347dbb;
     --accent-soft: #174675;
     --accent-hover: #6ba7d8;
@@ -187,7 +191,7 @@ body,
 }
 
 :root[data-theme="purple"][data-mode="dark"] {
-    --page-bg-image: url("../assets/images/dark_purple.png");
+    --page-bg-image: url("../assets/images/theme_1/dark_purple.png");
     --accent: #6c55b5;
     --accent-soft: #35246f;
     --accent-hover: #a18bdd;
@@ -197,7 +201,7 @@ body,
 }
 
 :root[data-theme="green"][data-mode="dark"] {
-    --page-bg-image: url("../assets/images/dark_green.png");
+    --page-bg-image: url("../assets/images/theme_1/dark_green.png");
     --accent: #469b5a;
     --accent-soft: #20542e;
     --accent-hover: #83c58c;
@@ -207,7 +211,7 @@ body,
 }
 
 :root[data-theme="orange"][data-mode="dark"] {
-    --page-bg-image: url("../assets/images/dark_orange.png");
+    --page-bg-image: url("../assets/images/theme_1/dark_orange.png");
     --accent: #d46a20;
     --accent-soft: #71300d;
     --accent-hover: #f09a4b;
@@ -217,7 +221,7 @@ body,
 }
 
 :root[data-theme="neutral"][data-mode="dark"] {
-    --page-bg-image: url("../assets/images/black.png");
+    --page-bg-image: url("../assets/images/theme_1/black.png");
     --accent: #a0a0a0;
     --accent-soft: #383838;
     --accent-hover: #d0d0d0;
@@ -496,3 +500,30 @@ body {
     --completed-border: #5da77b;
     --completed-text: #c8f0d7;
 }
+
+/* Deux fonds pour chaque combinaison de thème et de mode. */
+:root[data-theme="blue"][data-mode="light"][data-wallpaper="2"] { --page-bg-image: url("../assets/images/theme_2/blue.png"); }
+:root[data-theme="blue"][data-mode="dark"][data-wallpaper="2"] { --page-bg-image: url("../assets/images/theme_2/dark_blue.png"); }
+:root[data-theme="purple"][data-mode="light"][data-wallpaper="2"] { --page-bg-image: url("../assets/images/theme_2/purple.png"); }
+:root[data-theme="purple"][data-mode="dark"][data-wallpaper="2"] { --page-bg-image: url("../assets/images/theme_2/dark_purple.png"); }
+:root[data-theme="green"][data-mode="light"][data-wallpaper="2"] { --page-bg-image: url("../assets/images/theme_2/green.png"); }
+:root[data-theme="green"][data-mode="dark"][data-wallpaper="2"] { --page-bg-image: url("../assets/images/theme_2/dark_green.png"); }
+:root[data-theme="orange"][data-mode="light"][data-wallpaper="2"] { --page-bg-image: url("../assets/images/theme_2/orange.png"); }
+:root[data-theme="orange"][data-mode="dark"][data-wallpaper="2"] { --page-bg-image: url("../assets/images/theme_2/dark_orange.png"); }
+:root[data-theme="neutral"][data-mode="light"][data-wallpaper="2"] { --page-bg-image: url("../assets/images/theme_2/white.png"); }
+:root[data-theme="neutral"][data-mode="dark"][data-wallpaper="2"] { --page-bg-image: url("../assets/images/theme_2/black.png"); }
+
+/* Single opacity source shared by light/dark surfaces and all five themes. */
+:root, :root[data-mode="light"], :root[data-mode="dark"] {
+  --glass-opacity: .28;
+  --glass-opacity-percent: 28%;
+  --glass-bg: rgba(var(--glass-surface-rgb), var(--glass-opacity));
+  --card-opacity: .60;
+  --control-opacity: .48;
+  --card-bg: rgba(var(--glass-surface-rgb), var(--card-opacity));
+  --control-bg: rgba(var(--glass-surface-rgb), var(--control-opacity));
+  --panel-bg: var(--card-bg);
+  --glass-filter: blur(10px) saturate(115%);
+}
+:root { --glass-surface-rgb: 255, 255, 255; }
+:root[data-mode="dark"] { --glass-surface-rgb: 18, 21, 30; --glass-opacity: .36; --glass-opacity-percent: 36%; --card-opacity: .68; --control-opacity: .56; }

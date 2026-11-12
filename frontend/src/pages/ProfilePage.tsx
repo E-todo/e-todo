@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { deleteUser, updateUser, type User } from "../api/auth";
 
@@ -7,7 +7,7 @@ export default function ProfilePage({
     onUserChange,
 }: {
     user: User;
-    onUserChange: () => void;
+    onUserChange: (user: User) => void;
 }) {
     const [firstname, setFirstname] = useState(user.firstname);
     const [lastname, setLastname] = useState(user.name);
@@ -16,11 +16,6 @@ export default function ProfilePage({
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    useEffect(() => {
-        setFirstname(user.firstname);
-        setLastname(user.name);
-        setEmail(user.email);
-    }, [user]);
     const initials =
         `${firstname.slice(0, 1)}${lastname.slice(0, 1)}`.toUpperCase();
     async function save(event: React.FormEvent<HTMLFormElement>) {
@@ -28,7 +23,7 @@ export default function ProfilePage({
         setLoading(true);
         setMessage("");
         try {
-            await updateUser(user.id, {
+            const updated = await updateUser(user.id, {
                 firstname,
                 name: lastname,
                 email,
@@ -36,7 +31,7 @@ export default function ProfilePage({
             });
             setPassword("");
             setMessage("Profil mis à jour.");
-            onUserChange();
+            onUserChange(updated);
         } catch (error) {
             setMessage(
                 error instanceof Error

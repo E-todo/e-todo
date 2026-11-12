@@ -1,0 +1,3 @@
+Pour activer Ducor Sevals, placer ici votre fichier de police sous le nom Ducor-Sevals.woff2.
+Vous devez disposer des droits/licence nécessaires à son usage web.
+Sans ce fichier, les grands titres utilisent automatiquement Salmond.
