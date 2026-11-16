@@ -66,7 +66,6 @@ function AppLayout({
         onThemeChange={onThemeChange}
         mode={mode}
         onModeChange={onModeChange}
-        user={user}
         onLogout={onLogout}
         wallpaper={wallpaper}
         onWallpaperChange={onWallpaperChange}

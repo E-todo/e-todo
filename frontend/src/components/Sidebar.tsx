@@ -12,7 +12,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { NavLink } from "react-router-dom";
-import type { User } from "../api/auth";
 
 type Theme = "blue" | "purple" | "green" | "orange" | "neutral";
 type Mode = "light" | "dark";
@@ -22,7 +21,6 @@ type SidebarProps = {
   onThemeChange: (theme: Theme) => void;
   mode: Mode;
   onModeChange: (mode: Mode) => void;
-  user: User;
   onLogout: () => void;
   wallpaper: 1 | 2;
   onWallpaperChange: (wallpaper: 1 | 2) => void;
@@ -51,7 +49,6 @@ export default function Sidebar({
   onThemeChange,
   mode,
   onModeChange,
-  user,
   onLogout,
   wallpaper,
   onWallpaperChange,
@@ -141,19 +138,8 @@ export default function Sidebar({
   };
   return (
     <aside className="sidebar">
-      <NavLink to="/home" className="sidebar-brand">
-        MY E-TODO
-      </NavLink>
-
-      <NavLink to="/profile" className="sidebar-profile" title="Mon profil">
-        <span className="mobile-profile-label">
-          <ProfileCircle width={21} height={21} aria-hidden="true" />
-          <span>Profil</span>
-        </span>
-        <span className="sidebar-profile-info">
-          <strong>{user.firstname}</strong>
-          <small>Mon profil</small>
-        </span>
+      <NavLink to="/home" className="sidebar-brand" aria-label="E-todo - Accueil">
+        E-todo
       </NavLink>
 
       <nav className="sidebar-nav" aria-label="Navigation principale">
@@ -165,6 +151,10 @@ export default function Sidebar({
         <NavLink to="/dashboard" title="Mes tâches" aria-label="Mes tâches">
           <TaskList width={21} height={21} />
           <span>Mes tâches</span>
+        </NavLink>
+        <NavLink to="/profile" title="Mon profil" aria-label="Mon profil">
+          <ProfileCircle width={21} height={21} />
+          <span>Profil</span>
         </NavLink>
         <div className="sidebar-theme-container">
           <button

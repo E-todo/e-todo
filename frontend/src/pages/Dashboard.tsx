@@ -154,7 +154,7 @@ export default function Dashboard() {
             </p>
             <h2>Mes tâches</h2>
           </div>
-          <div className="v23-view-switch">
+          <div className="v23-view-switch" data-view={view} aria-label="Vue des t?ches">
             <button
               type="button"
               className={view === "board" ? "active" : ""}

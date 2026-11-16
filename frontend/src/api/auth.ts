@@ -58,9 +58,7 @@ export function getUser() {
 }
 export function updateUser(
   id: number,
-  values: Partial<Pick<User, "firstname" | "name" | "email">> & {
-    password?: string;
-  },
+  values: Partial<Pick<User, "firstname" | "name" | "email">>,
 ) {
   return request(`/users/${id}`, {
     method: "PUT",
@@ -69,6 +67,16 @@ export function updateUser(
 }
 export function deleteUser(id: number) {
   return request(`/users/${id}`, { method: "DELETE" });
+}
+export function changePassword(
+  currentPassword: string,
+  newPassword: string,
+  confirmPassword: string,
+) {
+  return request("/user/password", {
+    method: "PUT",
+    body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+  });
 }
 export function logout() {
   localStorage.removeItem("my-e-todo-token");
