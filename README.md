@@ -41,6 +41,28 @@ La variable `VITE_API_URL` dans `frontend/.env` doit correspondre à l'adresse d
 
 Les fichiers `.env` restent locaux et ne sont pas suivis par Git. Les copier depuis les `.env.example` à la première installation seulement ; s'ils existent déjà, conserver leur configuration.
 
+## Sous Linux
+
+Installer Node.js et npm, puis un serveur MySQL ou MariaDB. Sur Ubuntu ou Debian, depuis la racine du projet :
+
+```bash
+sudo apt install mariadb-server
+sudo systemctl start mariadb
+sudo mariadb < my_e-todo.sql
+```
+
+Cr?er un utilisateur pour l?application avec `sudo mariadb` :
+
+```sql
+CREATE USER 'etodo'@'localhost' IDENTIFIED BY 'choisir_un_mot_de_passe';
+GRANT ALL PRIVILEGES ON `my_e-todo`.* TO 'etodo'@'localhost';
+EXIT;
+```
+
+Reprendre ensuite les ?tapes Backend et Frontend ci-dessus. Dans chaque dossier, remplacer `Copy-Item .env.example .env` par `cp -n .env.example .env`, qui conserve un ?ventuel fichier existant. Renseigner `MYSQL_USER=etodo` et le mot de passe choisi dans `backend/.env`.
+
+Lancer `npm run dev` dans chacun des deux terminaux, puis ouvrir l?adresse affich?e par Vite.
+
 ## Utilisation
 
 Créer un compte, puis se connecter pour ajouter, modifier ou supprimer des tâches. Le titre et la date d’échéance sont obligatoires. Les tâches et leur statut sont enregistrés dans la base. Les filtres, le calendrier et les thèmes permettent de personnaliser l'affichage.
