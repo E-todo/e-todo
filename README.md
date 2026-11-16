@@ -1,61 +1,54 @@
 # MY E-TODO
 
-Application de gestion de tâches avec React, TypeScript, Express et MySQL.
+Application de gestion de tâches réalisée avec React, TypeScript, Express et MySQL. Chaque utilisateur peut créer un compte, gérer ses tâches et suivre leur avancement.
 
-## 1. Préparer la base de données
+## Installation
 
-Exécuter `my_e-todo.sql` dans MySQL Workbench ou depuis un terminal MySQL. Le script crée la base `my_e-todo` et les tables `user` et `todo`.
+Il faut Node.js, npm et un serveur MySQL ou MariaDB. Avec XAMPP, seul le service MySQL est nécessaire.
 
-## 2. Configurer et démarrer le backend
+Démarrer la base de données, puis importer `my_e-todo.sql` depuis un client SQL. Le script crée la base `my_e-todo` et les tables `user` et `todo`.
 
-Dans un premier terminal :
+## Backend
 
-```bash
+Depuis la racine du projet, dans un premier terminal PowerShell :
+
+```powershell
 cd backend
 npm install
-cp .env.example .env
+Copy-Item .env.example .env
 ```
 
-Renseigner les identifiants MySQL dans `backend/.env` et remplacer `JWT_SECRET` par une longue clé aléatoire. Puis lancer :
+Dans `backend/.env`, renseigner l'adresse et le port du serveur (`MYSQL_HOST`, `MYSQL_PORT`), les identifiants (`MYSQL_USER`, `MYSQL_PASSWORD`) et le nom de la base (`MYSQL_DATABASE`). Choisir une longue clé aléatoire pour `JWT_SECRET`. `PORT` définit le port de l'API, par défaut `3000`.
 
-```bash
+```powershell
 npm run dev
 ```
 
-L'API démarre sur `http://localhost:3000`.
+L'API est accessible sur `http://localhost:3000`. Pour vérifier la connexion à la base, ouvrir `http://localhost:3000/health/db`.
 
-## 3. Configurer et démarrer le frontend
+## Frontend
 
 Dans un deuxième terminal, depuis la racine du projet :
 
-```bash
-cd my_e-todo/frontend
+```powershell
+cd frontend
 npm install
-npm install --save-dev prettier
-cp .env.example .env
+Copy-Item .env.example .env
 npm run dev
 ```
 
-Ouvrir l'adresse affichée par Vite (généralement `http://localhost:5173`).
+La variable `VITE_API_URL` dans `frontend/.env` doit correspondre à l'adresse du backend, par défaut `http://localhost:3000`. Ouvrir ensuite l'adresse affichée par Vite.
 
-## 4. Qualité du code
+Les fichiers `.env` restent locaux et ne sont pas suivis par Git. Les copier depuis les `.env.example` à la première installation seulement ; s'ils existent déjà, conserver leur configuration.
 
-Depuis `my_e-todo/frontend` :
+## Utilisation
 
-```bash
-npm run build
-npm run lint
-npm run format
-```
+Créer un compte, puis se connecter pour ajouter, modifier ou supprimer des tâches. Le titre et la date d’échéance sont obligatoires. Les tâches et leur statut sont enregistrés dans la base. Les filtres, le calendrier et les thèmes permettent de personnaliser l'affichage.
 
-La configuration Prettier est dans `.prettierrc.json`. Elle applique une largeur de ligne de 80 caractères, deux espaces d'indentation, les points-virgules désactivés et les apostrophes simples.
+Si la connexion ou le chargement des tâches échoue, vérifier que le backend et le serveur MySQL sont démarrés, puis contrôler les paramètres des deux `.env`.
 
-## Fonctionnement
+## Vérifications
 
-- Inscription et connexion avec mot de passe haché côté serveur.
-- Les routes privées nécessitent un token JWT.
-- Les tâches sont enregistrées dans MySQL et liées au compte connecté.
-- Le changement de statut d'une tâche est enregistré en base de données.
-- Les quatre thèmes visuels restent disponibles.
+Dans `backend/`, `npm run build` compile le serveur et `npm start` lance la version compilée.
 
-La priorité est actuellement une information d'affichage locale : la base de données fournie ne contient pas de colonne pour la sauvegarder.
+Dans `frontend/`, `npm run build` génère l'application, `npm run lint` vérifie le code et `npm run typecheck` vérifie les types TypeScript.

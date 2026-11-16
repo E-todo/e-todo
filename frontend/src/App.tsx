@@ -8,7 +8,6 @@ import {
 } from "react-router-dom";
 
 import "./styles/App.css";
-import "./styles/polish.css";
 import GlassSkeleton from "./components/GlassSkeleton";
 import { readStorage, writeStorage } from "./utils/storage";
 import Sidebar from "./components/Sidebar";
@@ -34,9 +33,7 @@ function getInitialTheme(): Theme {
 }
 
 function getInitialMode(): Mode {
-  return readStorage("my-e-todo-mode") === "dark"
-    ? "dark"
-    : "light";
+  return readStorage("my-e-todo-mode") === "dark" ? "dark" : "light";
 }
 
 function AppLayout({
@@ -80,10 +77,7 @@ function AppLayout({
       {location.pathname === "/dashboard" && <Dashboard />}
 
       {location.pathname === "/profile" && (
-        <ProfilePage
-          user={user}
-          onUserChange={onUserChange}
-        />
+        <ProfilePage user={user} onUserChange={onUserChange} />
       )}
     </div>
   );
@@ -167,11 +161,6 @@ function ProtectedLayout({
 }
 
 export default function App() {
-  useEffect(() => {
-    try { localStorage.removeItem("my-e-todo-glass-opacity"); } catch { /* Storage unavailable. */ }
-    document.documentElement.style.removeProperty("--glass-opacity");
-    document.documentElement.style.removeProperty("--glass-opacity-percent");
-  }, []);
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [mode, setMode] = useState<Mode>(getInitialMode);
   const [wallpaper, setWallpaper] = useState<1 | 2>(() =>
@@ -180,21 +169,12 @@ export default function App() {
 
   useEffect(() => {
     const root = document.documentElement;
-    const previous = getComputedStyle(root).getPropertyValue("--page-bg-image").trim();
-    const changed = root.dataset.theme !== undefined && (root.dataset.theme !== theme || root.dataset.mode !== mode || root.dataset.wallpaper !== String(wallpaper));
-    root.style.setProperty("--previous-wallpaper", previous);
     root.dataset.theme = theme;
     root.dataset.mode = mode;
     root.dataset.wallpaper = String(wallpaper);
     writeStorage("my-e-todo-theme", theme);
     writeStorage("my-e-todo-mode", mode);
     writeStorage("my-e-todo-wallpaper", String(wallpaper));
-    if (!changed || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const animation = document.querySelector(".app")?.animate(
-      [{ opacity: 1 }, { opacity: 0 }],
-      { duration: 380, easing: "cubic-bezier(.2,.7,.3,1)", pseudoElement: "::after" },
-    );
-    return () => animation?.cancel();
   }, [theme, mode, wallpaper]);
 
   return (
@@ -202,47 +182,22 @@ export default function App() {
       <Routes>
         <Route path="/" element={<RootRedirect />} />
 
-        <Route
-          path="/home"
-          element={
-            <ProtectedLayout
-              theme={theme}
-              onThemeChange={setTheme}
-              mode={mode}
-              onModeChange={setMode}
-              wallpaper={wallpaper}
-              onWallpaperChange={setWallpaper}
-            />
-          }
-        />
-
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedLayout
-              theme={theme}
-              onThemeChange={setTheme}
-              mode={mode}
-              onModeChange={setMode}
-              wallpaper={wallpaper}
-              onWallpaperChange={setWallpaper}
-            />
-          }
-        />
-
-        <Route
-          path="/profile"
-          element={
-            <ProtectedLayout
-              theme={theme}
-              onThemeChange={setTheme}
-              mode={mode}
-              onModeChange={setMode}
-              wallpaper={wallpaper}
-              onWallpaperChange={setWallpaper}
-            />
-          }
-        />
+        {["/home", "/dashboard", "/profile"].map((path) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <ProtectedLayout
+                theme={theme}
+                onThemeChange={setTheme}
+                mode={mode}
+                onModeChange={setMode}
+                wallpaper={wallpaper}
+                onWallpaperChange={setWallpaper}
+              />
+            }
+          />
+        ))}
 
         <Route
           path="/login"

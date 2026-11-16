@@ -22,16 +22,13 @@
     box-sizing: border-box;
 }
 
-html,
-body,
-#root {
+html, body, #root {
     width: 100%;
     min-height: 100%;
     margin: 0;
 }
 
-:root,
-:root[data-theme="blue"] {
+:root, :root[data-theme="blue"] {
     color-scheme: light;
     --page-bg-image: url("../assets/images/theme_1/blue.png");
     --page-bg: #dceaf5;
@@ -244,10 +241,7 @@ body {
         background-color 0.25s ease;
 }
 
-button,
-input,
-textarea,
-select {
+button, input, textarea, select {
     font: inherit;
 }
 
