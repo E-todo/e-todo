@@ -1,180 +1,23 @@
-import { useEffect, useState, type ReactNode } from "react";
-import {
-  BrowserRouter,
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-} from "react-router-dom";
+import type { ReactNode } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import "./styles/App.css";
-import GlassSkeleton from "./components/GlassSkeleton";
-import { readStorage, writeStorage } from "./utils/storage";
-import Sidebar from "./components/Sidebar";
-import Dashboard from "./pages/Dashboard";
-import Home from "./pages/Home";
-import ProfilePage from "./pages/ProfilePage";
+import { useAppearance } from "./hooks/useAppearance";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import { getUser, isLoggedIn, logout, type User } from "./api/auth";
+import { isLoggedIn } from "./api/auth";
+import AuthenticatedLayout from "./components/AuthenticatedLayout";
 
-type Theme = "blue" | "purple" | "green" | "orange" | "neutral";
-type Mode = "light" | "dark";
-
-function getInitialTheme(): Theme {
-  const saved = readStorage("my-e-todo-theme");
-
-  return saved === "purple" ||
-    saved === "green" ||
-    saved === "orange" ||
-    saved === "neutral"
-    ? saved
-    : "blue";
-}
-
-function getInitialMode(): Mode {
-  return readStorage("my-e-todo-mode") === "dark" ? "dark" : "light";
-}
-
-function AppLayout({
-  theme,
-  onThemeChange,
-  mode,
-  onModeChange,
-  user,
-  onLogout,
-  onUserChange,
-  wallpaper,
-  onWallpaperChange,
-}: {
-  theme: Theme;
-  onThemeChange: (theme: Theme) => void;
-  mode: Mode;
-  onModeChange: (mode: Mode) => void;
-  user: User;
-  onLogout: () => void;
-  onUserChange: (user: User) => void;
-  wallpaper: 1 | 2;
-  onWallpaperChange: (wallpaper: 1 | 2) => void;
-}) {
-  const location = useLocation();
-
-  return (
-    <div className="app">
-      <Sidebar
-        theme={theme}
-        onThemeChange={onThemeChange}
-        mode={mode}
-        onModeChange={onModeChange}
-        onLogout={onLogout}
-        wallpaper={wallpaper}
-        onWallpaperChange={onWallpaperChange}
-      />
-
-      {location.pathname === "/home" && <Home />}
-
-      {location.pathname === "/dashboard" && <Dashboard />}
-
-      {location.pathname === "/profile" && (
-        <ProfilePage user={user} onUserChange={onUserChange} />
-      )}
-    </div>
-  );
-}
-
-// Empêche un utilisateur connecté d'accéder aux pages
-// de connexion et d'inscription.
 function GuestOnlyRoute({ children }: { children: ReactNode }) {
   return isLoggedIn() ? <Navigate to="/home" replace /> : <>{children}</>;
 }
 
-// Choisit la page de départ selon la présence du token.
 function RootRedirect() {
   return <Navigate to={isLoggedIn() ? "/home" : "/login"} replace />;
 }
 
-// Protège les pages nécessitant une connexion.
-function ProtectedLayout({
-  theme,
-  onThemeChange,
-  mode,
-  onModeChange,
-  wallpaper,
-  onWallpaperChange,
-}: {
-  theme: Theme;
-  onThemeChange: (theme: Theme) => void;
-  mode: Mode;
-  onModeChange: (mode: Mode) => void;
-  wallpaper: 1 | 2;
-  onWallpaperChange: (wallpaper: 1 | 2) => void;
-}) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getUser()
-      .then(setUser)
-      .catch(() => {
-        logout();
-        setUser(null);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
-  // Si le token a été supprimé, redirection immédiate.
-  if (!isLoggedIn()) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Chargement uniquement si un token existe encore.
-  if (loading) {
-    return (
-      <main className="auth-page">
-        <GlassSkeleton compact />
-      </main>
-    );
-  }
-
-  // Sécurité supplémentaire si aucun utilisateur n'est trouvé.
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return (
-    <AppLayout
-      theme={theme}
-      onThemeChange={onThemeChange}
-      mode={mode}
-      onModeChange={onModeChange}
-      user={user}
-      onUserChange={setUser}
-      wallpaper={wallpaper}
-      onWallpaperChange={onWallpaperChange}
-      onLogout={() => {
-        logout();
-        setUser(null);
-      }}
-    />
-  );
-}
-
 export default function App() {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
-  const [mode, setMode] = useState<Mode>(getInitialMode);
-  const [wallpaper, setWallpaper] = useState<1 | 2>(() =>
-    readStorage("my-e-todo-wallpaper") === "2" ? 2 : 1,
-  );
-
-  useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.theme = theme;
-    root.dataset.mode = mode;
-    root.dataset.wallpaper = String(wallpaper);
-    writeStorage("my-e-todo-theme", theme);
-    writeStorage("my-e-todo-mode", mode);
-    writeStorage("my-e-todo-wallpaper", String(wallpaper));
-  }, [theme, mode, wallpaper]);
+  const appearance = useAppearance();
 
   return (
     <BrowserRouter>
@@ -185,16 +28,7 @@ export default function App() {
           <Route
             key={path}
             path={path}
-            element={
-              <ProtectedLayout
-                theme={theme}
-                onThemeChange={setTheme}
-                mode={mode}
-                onModeChange={setMode}
-                wallpaper={wallpaper}
-                onWallpaperChange={setWallpaper}
-              />
-            }
+            element={<AuthenticatedLayout {...appearance} />}
           />
         ))}
 

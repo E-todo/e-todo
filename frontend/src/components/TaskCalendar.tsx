@@ -2,7 +2,7 @@
 import { NavArrowLeft, NavArrowRight, Xmark } from "iconoir-react";
 import { statusLabels, type Task } from "../types/task";
 import { calendarDays, shiftMonth } from "../utils/dates";
-import { useDialog } from "./useDialog";
+import { useDialog } from "../hooks/useDialog";
 
 type CalendarProps = {
   tasks: Task[];
@@ -30,8 +30,8 @@ export default function TaskCalendar({
   const selectedTasks = tasks.filter((task) => task.dueDate === selectedDate);
 
   return (
-    <section className="v23-calendar" aria-label="Calendrier des échéances">
-      <div className="v23-calendar-head">
+    <section className="task-calendar" aria-label="Calendrier des échéances">
+      <div className="calendar-header">
         <button
           type="button"
           onClick={() => onMonthChange(shiftMonth(month, -1))}
@@ -57,13 +57,13 @@ export default function TaskCalendar({
         </button>
       </div>
       <div
-        className="v23-calendar-grid"
+        className="calendar-grid"
         style={{
           gridTemplateRows: `24px repeat(${days.length / 7}, minmax(0, 1fr))`,
         }}
       >
         {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => (
-          <strong key={day} className="v23-weekday">
+          <strong key={day} className="calendar-weekday">
             {day}
           </strong>
         ))}
@@ -74,7 +74,7 @@ export default function TaskCalendar({
           return (
             <div
               key={date ?? index}
-              className={`v23-calendar-day ${date ? "" : "outside"} ${date === today ? "is-today" : ""}`}
+              className={`calendar-day ${date ? "" : "outside"} ${date === today ? "is-today" : ""}`}
             >
               {date && (
                 <>
@@ -98,7 +98,7 @@ export default function TaskCalendar({
                     <button
                       key={task.id}
                       type="button"
-                      className={`v23-event status-${task.status}`}
+                      className={`calendar-task status-${task.status}`}
                       onClick={() => onEdit(task.id)}
                       title={`${task.title} — ${statusLabels[task.status]}`}
                     >

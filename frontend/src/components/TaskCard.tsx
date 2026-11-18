@@ -39,7 +39,7 @@ export default function TaskCard({
   }
   return (
     <article
-      className={`task-card refined-card status-${task.status} ${isDragging ? "is-dragging" : ""} ${pending ? "is-completing" : ""}`}
+      className={`task-card task-card-surface status-${task.status} ${isDragging ? "is-dragging" : ""} ${pending ? "is-completing" : ""}`}
       draggable={!pending}
       onDragStart={(event) => onDragStart(event, task.id)}
       onDragEnd={onDragEnd}

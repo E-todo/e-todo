@@ -1,8 +1,9 @@
-﻿import { useCallback, useState, type FormEvent } from "react";
+import { getErrorMessage } from "../utils/errors";
+import { useCallback, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { Xmark } from "iconoir-react";
 import { changePassword } from "../api/auth";
-import { useDialog } from "./useDialog";
+import { useDialog } from "../hooks/useDialog";
 
 type PasswordDialogProps = { onClose: () => void; onSuccess: () => void };
 
@@ -33,9 +34,7 @@ export default function PasswordDialog({
       await changePassword(currentPassword, newPassword, confirmPassword);
       onSuccess();
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Modification impossible.",
-      );
+      setError(getErrorMessage(error, "Modification impossible."));
     } finally {
       setSaving(false);
     }

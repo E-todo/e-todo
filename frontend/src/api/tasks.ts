@@ -17,7 +17,7 @@ function statusToApi(status: TaskStatus) {
   if (status === "completed") return "done";
   return "todo";
 }
-function convert(value: unknown): Task {
+function parseTask(value: unknown): Task {
   if (
     !isObject(value) ||
     typeof value.id !== "number" ||
@@ -47,7 +47,7 @@ function dateForApi(date: string) {
 export async function getTasks(): Promise<Task[]> {
   const data = await request("/todos");
   if (!Array.isArray(data)) throw new Error("Liste de tâches invalide.");
-  return data.map(convert);
+  return data.map(parseTask);
 }
 export async function createTask(task: Omit<Task, "id">) {
   const todo = (await request("/todos", {
@@ -59,7 +59,7 @@ export async function createTask(task: Omit<Task, "id">) {
       status: statusToApi(task.status),
     }),
   })) as ApiTask;
-  return convert(todo);
+  return parseTask(todo);
 }
 export async function updateTask(id: number, task: Partial<Task>) {
   const values: Record<string, string> = {};
@@ -71,7 +71,7 @@ export async function updateTask(id: number, task: Partial<Task>) {
     method: "PUT",
     body: JSON.stringify(values),
   })) as ApiTask;
-  return convert(updated);
+  return parseTask(updated);
 }
 export async function deleteTask(id: number) {
   await request(`/todos/${id}`, { method: "DELETE" });

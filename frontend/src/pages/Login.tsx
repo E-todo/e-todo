@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../utils/errors";
 import BackButton from "../components/BackButton";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -19,9 +20,7 @@ export default function Login() {
       await login(email, password);
       navigate("/home");
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Connexion impossible.",
-      );
+      setMessage(getErrorMessage(error, "Connexion impossible."));
     } finally {
       setLoading(false);
     }

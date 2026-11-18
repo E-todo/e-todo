@@ -1,26 +1,27 @@
-﻿import { useCallback, useEffect, useState, type DragEvent } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import { Plus, Search } from "iconoir-react";
 import GlassSkeleton from "../components/GlassSkeleton";
 import TaskCalendar from "../components/TaskCalendar";
-import TaskCard from "../components/TaskCard";
+import TaskBoard from "../components/TaskBoard";
+import DeleteTaskDialog from "../components/DeleteTaskDialog";
 import TaskForm, { type TaskValues } from "../components/TaskForm";
-import { useDialog } from "../components/useDialog";
+import { useTasks } from "../hooks/useTasks";
 import { localDate } from "../utils/dates";
 import { matchesTaskFilters } from "../utils/taskFilters";
-import { createTask, deleteTask, getTasks, updateTask } from "../api/tasks";
+import { getErrorMessage } from "../utils/errors";
 import type { Task, TaskStatus } from "../types/task";
-
-const sections: { status: TaskStatus; title: string }[] = [
-  { status: "todo", title: "À faire" },
-  { status: "in_progress", title: "En cours" },
-  { status: "completed", title: "Terminées" },
-];
 
 export default function Dashboard() {
   const [today, setToday] = useState(localDate);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const {
+    tasks,
+    loading,
+    error,
+    setError,
+    addTask,
+    editTask,
+    removeTask: deleteTask,
+  } = useTasks();
   const [view, setView] = useState<"board" | "calendar">("board");
   const [month, setMonth] = useState(() => localDate().slice(0, 7));
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -31,23 +32,12 @@ export default function Dashboard() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [draggedId, setDraggedId] = useState<number | null>(null);
-  const [dropTarget, setDropTarget] = useState<TaskStatus | null>(null);
   const closeForm = useCallback(() => setFormOpen(false), []);
   const closeDelete = useCallback(() => {
     if (!deleting) setDeleteId(null);
   }, [deleting]);
-  useDialog(deleteId !== null, ".delete-dialog", closeDelete);
 
   useEffect(() => {
-    getTasks()
-      .then(setTasks)
-      .catch((error) =>
-        setError(
-          error instanceof Error ? error.message : "Chargement impossible.",
-        ),
-      )
-      .finally(() => setLoading(false));
     const timer = window.setInterval(() => setToday(localDate()), 60000);
     return () => clearInterval(timer);
   }, []);
@@ -59,13 +49,9 @@ export default function Dashboard() {
   }
   async function saveTask(values: TaskValues) {
     if (editingTask) {
-      const updated = await updateTask(editingTask.id, values);
-      setTasks((current) =>
-        current.map((task) => (task.id === updated.id ? updated : task)),
-      );
+      await editTask(editingTask.id, values);
     } else {
-      const created = await createTask(values);
-      setTasks((current) => [...current, created]);
+      const created = await addTask(values);
       setSearch("");
       setOverdueOnly(false);
       setMobileStatus(created.status);
@@ -77,15 +63,10 @@ export default function Dashboard() {
   async function changeStatus(id: number, status: TaskStatus) {
     if (!tasks.some((task) => task.id === id && task.status !== status)) return;
     try {
-      const updated = await updateTask(id, { status });
-      setTasks((current) =>
-        current.map((task) => (task.id === id ? updated : task)),
-      );
+      await editTask(id, { status });
       setError("");
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Modification impossible.",
-      );
+      setError(getErrorMessage(error, "Modification impossible."));
     }
   }
   async function removeTask() {
@@ -93,33 +74,14 @@ export default function Dashboard() {
     setDeleting(true);
     try {
       await deleteTask(deleteId);
-      setTasks((current) => current.filter((task) => task.id !== deleteId));
       setDeleteId(null);
       setError("");
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Suppression impossible.",
-      );
+      setError(getErrorMessage(error, "Suppression impossible."));
     } finally {
       setDeleting(false);
     }
   }
-  function dragStart(event: DragEvent<HTMLElement>, id: number) {
-    setDraggedId(id);
-    event.dataTransfer.setData("text/plain", String(id));
-    event.dataTransfer.effectAllowed = "move";
-  }
-  function dragEnd() {
-    setDraggedId(null);
-    setDropTarget(null);
-  }
-  function drop(event: DragEvent<HTMLElement>, status: TaskStatus) {
-    event.preventDefault();
-    const id = Number(event.dataTransfer.getData("text/plain"));
-    if (Number.isSafeInteger(id) && id > 0) void changeStatus(id, status);
-    dragEnd();
-  }
-
   const visibleTasks = tasks
     .filter((task) =>
       matchesTaskFilters(task, today, {
@@ -130,17 +92,12 @@ export default function Dashboard() {
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
   const completed = tasks.filter((task) => task.status === "completed").length;
   const remaining = tasks.length - completed;
-  const taskGroups = sections.map((section) => ({
-    ...section,
-    tasks: visibleTasks.filter((task) => task.status === section.status),
-  }));
-
   let progressLabel = `${remaining} tâche${remaining > 1 ? "s" : ""} restante${remaining > 1 ? "s" : ""}`;
   if (loading) progressLabel = "Chargement…";
 
   return (
     <main
-      className={`main-content refreshed-dashboard ${view === "calendar" ? "calendar-view" : ""}`}
+      className={`main-content dashboard-page ${view === "calendar" ? "calendar-view" : ""}`}
     >
       <section className="tasks-panel">
         <header className="dashboard-header">
@@ -154,7 +111,11 @@ export default function Dashboard() {
             </p>
             <h2>Mes tâches</h2>
           </div>
-          <div className="v23-view-switch" data-view={view} aria-label="Vue des t?ches">
+          <div
+            className="view-switch"
+            data-view={view}
+            aria-label="Vue des tâches"
+          >
             <button
               type="button"
               className={view === "board" ? "active" : ""}
@@ -202,7 +163,7 @@ export default function Dashboard() {
         {loading && <GlassSkeleton />}
         <div className="dashboard-controls">
           <div className="task-toolbar">
-            <label className="v2-search">
+            <label className="task-search">
               <Search width={19} aria-hidden="true" />
               <input
                 type="search"
@@ -241,82 +202,16 @@ export default function Dashboard() {
           />
         )}
         {!loading && view === "board" && (
-          <>
-            <div
-              className="mobile-status-tabs"
-              aria-label="Colonnes du tableau"
-            >
-              {taskGroups.map((section) => (
-                <button
-                  key={section.status}
-                  type="button"
-                  aria-pressed={mobileStatus === section.status}
-                  onClick={() => setMobileStatus(section.status)}
-                >
-                  {section.title}
-                </button>
-              ))}
-            </div>
-            <div className="task-groups">
-              {taskGroups.map((section) => {
-                const sectionTasks = section.tasks;
-                return (
-                  <section
-                    key={section.status}
-                    className={`task-group task-group-${section.status} ${mobileStatus === section.status ? "mobile-active" : ""} ${dropTarget === section.status ? "is-drop-target" : ""}`}
-                    onDragOver={(event) => {
-                      event.preventDefault();
-                      if (draggedId !== null) setDropTarget(section.status);
-                    }}
-                    onDragLeave={(event) => {
-                      if (
-                        !event.currentTarget.contains(
-                          event.relatedTarget as Node | null,
-                        )
-                      )
-                        setDropTarget(null);
-                    }}
-                    onDrop={(event) => drop(event, section.status)}
-                  >
-                    <div className="task-group-heading">
-                      <h3>{section.title}</h3>
-                    </div>
-                    {dropTarget === section.status && (
-                      <div className="drop-placeholder">
-                        Déposer dans « {section.title} »
-                      </div>
-                    )}
-                    {sectionTasks.length ? (
-                      <div className="task-list">
-                        {sectionTasks.map((task) => (
-                          <TaskCard
-                            key={task.id}
-                            task={task}
-                            today={today}
-                            onEdit={openForm}
-                            onDelete={setDeleteId}
-                            onStatusChange={changeStatus}
-                            onDragStart={dragStart}
-                            onDragEnd={dragEnd}
-                            isDragging={draggedId === task.id}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="task-group-empty illustrated-empty">
-                        <strong>Aucune tâche ici</strong>
-                        <p>
-                          {tasks.length
-                            ? "Aucune tâche ne correspond à ces filtres."
-                            : "Ajoutez votre première tâche."}
-                        </p>
-                      </div>
-                    )}
-                  </section>
-                );
-              })}
-            </div>
-          </>
+          <TaskBoard
+            tasks={visibleTasks}
+            totalTasks={tasks.length}
+            today={today}
+            mobileStatus={mobileStatus}
+            onStatusSelect={setMobileStatus}
+            onEdit={openForm}
+            onDelete={setDeleteId}
+            onStatusChange={changeStatus}
+          />
         )}
         <div className="add-task-container">
           <button
@@ -333,44 +228,13 @@ export default function Dashboard() {
         <TaskForm task={editingTask} onSave={saveTask} onClose={closeForm} />
       )}
       {deleteId !== null && (
-        <div
-          className="modal-overlay"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeDelete();
-          }}
-        >
-          <section
-            className="task-form delete-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-title"
-          >
-            <h2 id="delete-title">Supprimer cette tâche ?</h2>
-            <p>
-              « {tasks.find((task) => task.id === deleteId)?.title} » sera
-              définitivement supprimée.
-            </p>
-            <div className="task-form-actions">
-              <button
-                type="button"
-                className="cancel-task-button"
-                disabled={deleting}
-                onClick={closeDelete}
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                className="delete-confirm"
-                disabled={deleting}
-                onClick={removeTask}
-              >
-                {deleting ? "Suppression…" : "Supprimer"}
-              </button>
-            </div>
-            {error && <p role="alert">{error}</p>}
-          </section>
-        </div>
+        <DeleteTaskDialog
+          title={tasks.find((task) => task.id === deleteId)?.title ?? ""}
+          deleting={deleting}
+          error={error}
+          onClose={closeDelete}
+          onConfirm={removeTask}
+        />
       )}
     </main>
   );

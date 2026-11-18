@@ -8,7 +8,9 @@ export function calendarDays(month: string) {
   const count = new Date(year, number, 0).getDate();
   return Array.from({ length: Math.ceil((offset + count) / 7) * 7 }, (_, i) => {
     const day = i - offset + 1;
-    return day < 1 || day > count ? null : `${month}-${String(day).padStart(2, "0")}`;
+    return day < 1 || day > count
+      ? null
+      : `${month}-${String(day).padStart(2, "0")}`;
   });
 }
 

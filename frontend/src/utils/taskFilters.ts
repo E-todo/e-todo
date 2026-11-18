@@ -11,5 +11,8 @@ export function matchesTaskFilters(
     !`${task.title} ${task.description}`.toLocaleLowerCase("fr").includes(query)
   )
     return false;
-  return !filters.overdueOnly || (task.dueDate < today && task.status !== "completed");
+  return (
+    !filters.overdueOnly ||
+    (task.dueDate < today && task.status !== "completed")
+  );
 }

@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../utils/errors";
 import BackButton from "../components/BackButton";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -21,9 +22,7 @@ export default function Register() {
       await register(firstname, name, email, password);
       navigate("/home");
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Inscription impossible.",
-      );
+      setMessage(getErrorMessage(error, "Inscription impossible."));
     } finally {
       setLoading(false);
     }

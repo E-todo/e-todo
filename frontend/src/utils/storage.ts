@@ -1,9 +1,16 @@
-// Storage can be unavailable in private browsing or when the quota is exceeded.
+// Le stockage peut être indisponible en navigation privée.
 export function readStorage(key: string): string | null {
-  try { return localStorage.getItem(key); } catch { return null; }
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
 }
 
 export function writeStorage(key: string, value: string) {
-  try { localStorage.setItem(key, value); } catch { /* Keep the current session usable. */ }
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* Conserver le réglage pour la session en cours. */
+  }
 }
-

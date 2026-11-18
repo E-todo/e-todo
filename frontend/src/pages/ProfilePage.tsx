@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../utils/errors";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { deleteUser, updateUser, type User } from "../api/auth";
@@ -34,9 +35,7 @@ export default function ProfilePage({
       setMessage("Profil mis à jour.");
       onUserChange(updated);
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Modification impossible.",
-      );
+      setMessage(getErrorMessage(error, "Modification impossible."));
     } finally {
       setLoading(false);
     }
@@ -53,9 +52,7 @@ export default function ProfilePage({
       localStorage.removeItem("my-e-todo-token");
       navigate("/register");
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Suppression impossible.",
-      );
+      setMessage(getErrorMessage(error, "Suppression impossible."));
     }
   }
   return (
@@ -100,7 +97,11 @@ export default function ProfilePage({
               {message}
             </p>
           )}
-          <button className="task-action-button" type="submit" disabled={loading}>
+          <button
+            className="task-action-button"
+            type="submit"
+            disabled={loading}
+          >
             {loading ? "Enregistrement..." : "Enregistrer les modifications"}
           </button>
         </form>

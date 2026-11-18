@@ -1,6 +1,7 @@
-﻿import { useCallback, useState, type FormEvent } from "react";
+import { getErrorMessage } from "../utils/errors";
+import { useCallback, useState, type FormEvent } from "react";
 import { Xmark } from "iconoir-react";
-import { useDialog } from "./useDialog";
+import { useDialog } from "../hooks/useDialog";
 import { statusLabels, type Task, type TaskStatus } from "../types/task";
 
 export type TaskValues = Omit<Task, "id">;
@@ -41,9 +42,7 @@ export default function TaskForm({
       });
       onClose();
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Enregistrement impossible.",
-      );
+      setError(getErrorMessage(error, "Enregistrement impossible."));
     } finally {
       setSaving(false);
     }
@@ -56,7 +55,7 @@ export default function TaskForm({
       }}
     >
       <form
-        className="task-form v2-task-form task-editor"
+        className="task-form task-editor-form task-editor"
         role="dialog"
         aria-modal="true"
         aria-labelledby="task-form-title"

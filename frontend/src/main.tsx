@@ -6,11 +6,11 @@ import App from "./App.tsx";
 const rootElement = document.getElementById("root");
 
 if (rootElement === null) {
-    throw new Error("No #root element found in index.html");
+  throw new Error("No #root element found in index.html");
 }
 
 createRoot(rootElement).render(
-    <StrictMode>
-        <App />
-    </StrictMode>,
+  <StrictMode>
+    <App />
+  </StrictMode>,
 );
