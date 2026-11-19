@@ -21,7 +21,7 @@ interface TodoRow extends RowDataPacket {
 type CreateTodoBody = {
   title: string;
   description: string;
-  due_time?: string | null;
+  due_time: string;
   status?: TodoStatus;
   user_id?: number;
 };
@@ -62,9 +62,7 @@ function isCreateTodoBody(value: unknown): value is CreateTodoBody {
   return (
     typeof data.title === "string" &&
     typeof data.description === "string" &&
-    (data.due_time === undefined ||
-      data.due_time === null ||
-      typeof data.due_time === "string") &&
+    typeof data.due_time === "string" &&
     (data.status === undefined || isTodoStatus(data.status)) &&
     (data.user_id === undefined || (
       typeof data.user_id === "number" &&
@@ -142,6 +140,15 @@ router.post("/todos", authMiddleware, async (req, res) => {
     });
   }
 
+  if (
+    typeof req.body?.due_time !== "string" ||
+    !isValidDateTime(req.body.due_time)
+  ) {
+    return res.status(400).json({
+      msg: "due_time is required and must be a valid datetime (YYYY-MM-DD HH:mm:ss)"
+    });
+  }
+
   if (!isCreateTodoBody(req.body)) {
     return res.status(400).json({ msg: "Bad parameter" });
   }
@@ -151,7 +158,6 @@ router.post("/todos", authMiddleware, async (req, res) => {
   if (
     !title.trim() ||
     title.length > 255 ||
-    (due_time != null && !isValidDateTime(due_time)) ||
     (user_id !== undefined && user_id !== userId)
   ) {
     return res.status(400).json({ msg: "Bad parameter" });
@@ -165,7 +171,7 @@ router.post("/todos", authMiddleware, async (req, res) => {
       [
         title.trim(),
         description,
-        due_time ?? null,
+        due_time,
         status ?? "not started",
         userId
       ]
@@ -195,7 +201,7 @@ router.post("/todos", authMiddleware, async (req, res) => {
 type UpdateTodoBody = {
   title?: string;
   description?: string;
-  due_time?: string | null;
+  due_time?: string;
   status?: TodoStatus;
   user_id?: number;
 };
@@ -230,7 +236,6 @@ function isUpdateTodoBody(
     (data.description === undefined ||
       typeof data.description === "string") &&
     (data.due_time === undefined ||
-      data.due_time === null ||
       typeof data.due_time === "string") &&
     (data.status === undefined ||
       isTodoStatus(data.status)) &&
@@ -265,6 +270,16 @@ router.put("/todos/:id", authMiddleware, async (req, res) => {
     });
   }
 
+  if (
+    req.body?.due_time !== undefined &&
+    (typeof req.body.due_time !== "string" ||
+      !isValidDateTime(req.body.due_time))
+  ) {
+    return res.status(400).json({
+      msg: "due_time must be a valid datetime and cannot be removed"
+    });
+  }
+
   if (!isUpdateTodoBody(req.body)) {
     return res.status(400).json({ msg: "Bad parameter" });
   }
@@ -275,15 +290,13 @@ router.put("/todos/:id", authMiddleware, async (req, res) => {
     (updates.user_id !== undefined &&
      updates.user_id !== userId) ||
     (updates.title !== undefined &&
-     (!updates.title.trim() || updates.title.length > 255)) ||
-    (updates.due_time != null &&
-     !isValidDateTime(updates.due_time))
+     (!updates.title.trim() || updates.title.length > 255))
   ) {
     return res.status(400).json({ msg: "Bad parameter" });
   }
 
   const fields: string[] = [];
-  const values: (string | number | null)[] = [];
+  const values: (string | number)[] = [];
 
   if (updates.title !== undefined) {
     fields.push("title = ?");

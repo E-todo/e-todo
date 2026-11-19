@@ -47,7 +47,7 @@ function parseTask(value: unknown): Task {
   };
 }
 function dateForApi(date: string | null) {
-  if (date === null) return null;
+  if (!date) throw new Error("Date d’échéance obligatoire.");
   if (!isValidDate(date)) throw new Error("Date d’échéance invalide.");
   return `${date} 23:59:59`;
 }
@@ -69,7 +69,7 @@ export async function createTask(task: Omit<Task, "id">) {
   return parseTask(todo);
 }
 export async function updateTask(id: number, task: Partial<Task>) {
-  const values: Record<string, string | null> = {};
+  const values: Record<string, string> = {};
   if (task.title !== undefined) values.title = task.title;
   if (task.description !== undefined) values.description = task.description;
   if (task.dueDate !== undefined) values.due_time = dateForApi(task.dueDate);

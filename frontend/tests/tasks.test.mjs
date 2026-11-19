@@ -25,12 +25,18 @@ test("charge une tâche sans date et conserve une tâche datée", async () => {
   assert.deepEqual((await getTasks()).map((task) => task.dueDate), [null, "2026-11-20"]);
 });
 
-test("crée une tâche sans date avec due_time null", async () => {
-  let body;
-  mockResponse(apiTask(null), (options) => { body = JSON.parse(options.body); });
-  const task = await createTask({ title: "Tâche", description: "", dueDate: null, status: "todo" });
-  assert.equal(body.due_time, null);
-  assert.equal(task.dueDate, null);
+test("refuse de créer une tâche sans date avant l'envoi", async () => {
+  let sent = false;
+  mockResponse(apiTask(null), () => { sent = true; });
+  await assert.rejects(
+    createTask({ title: "Tâche", description: "", dueDate: null, status: "todo" }),
+    /Date d’échéance obligatoire/,
+  );
+  await assert.rejects(
+    createTask({ title: "Tâche", description: "", dueDate: "", status: "todo" }),
+    /Date d’échéance obligatoire/,
+  );
+  assert.equal(sent, false);
 });
 
 test("crée une tâche datée", async () => {
@@ -41,13 +47,13 @@ test("crée une tâche datée", async () => {
   assert.equal(task.dueDate, "2026-11-20");
 });
 
-test("ajoute puis retire une date via la mise à jour", async () => {
+test("modifie la date mais refuse de la retirer", async () => {
   const bodies = [];
   mockResponse(apiTask("2026-11-20 23:59:59"), (options) => { bodies.push(JSON.parse(options.body)); });
   await updateTask(1, { dueDate: "2026-11-20" });
-  mockResponse(apiTask(null), (options) => { bodies.push(JSON.parse(options.body)); });
-  await updateTask(1, { dueDate: null });
-  assert.deepEqual(bodies, [{ due_time: "2026-11-20 23:59:59" }, { due_time: null }]);
+  await assert.rejects(updateTask(1, { dueDate: null }), /Date d’échéance obligatoire/);
+  await assert.rejects(updateTask(1, { dueDate: "" }), /Date d’échéance obligatoire/);
+  assert.deepEqual(bodies, [{ due_time: "2026-11-20 23:59:59" }]);
 });
 
 test("refuse une date invalide avant l'envoi", async () => {
