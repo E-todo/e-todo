@@ -13,6 +13,8 @@ export function matchesTaskFilters(
     return false;
   return (
     !filters.overdueOnly ||
-    (task.dueDate < today && task.status !== "completed")
+    (task.dueDate !== null &&
+      task.dueDate < today &&
+      task.status !== "completed")
   );
 }

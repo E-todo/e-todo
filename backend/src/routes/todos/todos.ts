@@ -13,7 +13,7 @@ interface TodoRow extends RowDataPacket {
   title: string;
   description: string;
   created_at: Date;
-  due_time: Date;
+  due_time: string | null;
   status: TodoStatus;
   user_id: number;
 }
@@ -21,7 +21,7 @@ interface TodoRow extends RowDataPacket {
 type CreateTodoBody = {
   title: string;
   description: string;
-  due_time: string;
+  due_time?: string | null;
   status?: TodoStatus;
   user_id?: number;
 };
@@ -62,7 +62,9 @@ function isCreateTodoBody(value: unknown): value is CreateTodoBody {
   return (
     typeof data.title === "string" &&
     typeof data.description === "string" &&
-    typeof data.due_time === "string" &&
+    (data.due_time === undefined ||
+      data.due_time === null ||
+      typeof data.due_time === "string") &&
     (data.status === undefined || isTodoStatus(data.status)) &&
     (data.user_id === undefined || (
       typeof data.user_id === "number" &&
@@ -149,7 +151,7 @@ router.post("/todos", authMiddleware, async (req, res) => {
   if (
     !title.trim() ||
     title.length > 255 ||
-    !isValidDateTime(due_time) ||
+    (due_time != null && !isValidDateTime(due_time)) ||
     (user_id !== undefined && user_id !== userId)
   ) {
     return res.status(400).json({ msg: "Bad parameter" });
@@ -163,7 +165,7 @@ router.post("/todos", authMiddleware, async (req, res) => {
       [
         title.trim(),
         description,
-        due_time,
+        due_time ?? null,
         status ?? "not started",
         userId
       ]
@@ -193,7 +195,7 @@ router.post("/todos", authMiddleware, async (req, res) => {
 type UpdateTodoBody = {
   title?: string;
   description?: string;
-  due_time?: string;
+  due_time?: string | null;
   status?: TodoStatus;
   user_id?: number;
 };
@@ -228,6 +230,7 @@ function isUpdateTodoBody(
     (data.description === undefined ||
       typeof data.description === "string") &&
     (data.due_time === undefined ||
+      data.due_time === null ||
       typeof data.due_time === "string") &&
     (data.status === undefined ||
       isTodoStatus(data.status)) &&
@@ -273,14 +276,14 @@ router.put("/todos/:id", authMiddleware, async (req, res) => {
      updates.user_id !== userId) ||
     (updates.title !== undefined &&
      (!updates.title.trim() || updates.title.length > 255)) ||
-    (updates.due_time !== undefined &&
+    (updates.due_time != null &&
      !isValidDateTime(updates.due_time))
   ) {
     return res.status(400).json({ msg: "Bad parameter" });
   }
 
   const fields: string[] = [];
-  const values: (string | number)[] = [];
+  const values: (string | number | null)[] = [];
 
   if (updates.title !== undefined) {
     fields.push("title = ?");

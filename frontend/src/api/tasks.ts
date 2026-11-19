@@ -4,7 +4,7 @@ type ApiTask = {
   id: number;
   title: string;
   description: string;
-  due_time: string;
+  due_time: string | null;
   status: string;
 };
 function statusFromApi(status: string): TaskStatus {
@@ -17,14 +17,21 @@ function statusToApi(status: TaskStatus) {
   if (status === "completed") return "done";
   return "todo";
 }
+function isValidDate(date: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  const parsed = new Date(`${date}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+}
 function parseTask(value: unknown): Task {
   if (
     !isObject(value) ||
     typeof value.id !== "number" ||
     typeof value.title !== "string" ||
     typeof value.description !== "string" ||
-    typeof value.due_time !== "string" ||
-    !/^\d{4}-\d{2}-\d{2}/.test(value.due_time) ||
+    (value.due_time !== null &&
+      (typeof value.due_time !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})?)?$/.test(value.due_time) ||
+        !isValidDate(value.due_time.slice(0, 10)))) ||
     typeof value.status !== "string" ||
     !["not started", "todo", "in progress", "done"].includes(value.status)
   ) {
@@ -36,12 +43,12 @@ function parseTask(value: unknown): Task {
     title: todo.title,
     description: todo.description || "",
     status: statusFromApi(todo.status),
-    dueDate: todo.due_time.slice(0, 10),
+    dueDate: todo.due_time === null ? null : todo.due_time.slice(0, 10),
   };
 }
-function dateForApi(date: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date))
-    throw new Error("Une échéance est obligatoire.");
+function dateForApi(date: string | null) {
+  if (date === null) return null;
+  if (!isValidDate(date)) throw new Error("Date d’échéance invalide.");
   return `${date} 23:59:59`;
 }
 export async function getTasks(): Promise<Task[]> {
@@ -62,7 +69,7 @@ export async function createTask(task: Omit<Task, "id">) {
   return parseTask(todo);
 }
 export async function updateTask(id: number, task: Partial<Task>) {
-  const values: Record<string, string> = {};
+  const values: Record<string, string | null> = {};
   if (task.title !== undefined) values.title = task.title;
   if (task.description !== undefined) values.description = task.description;
   if (task.dueDate !== undefined) values.due_time = dateForApi(task.dueDate);

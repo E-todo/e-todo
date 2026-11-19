@@ -37,7 +37,7 @@ export default function TaskForm({
       await onSave({
         title: title.trim(),
         description: description.trim(),
-        dueDate,
+        dueDate: dueDate || null,
         status,
       });
       onClose();
@@ -98,7 +98,6 @@ export default function TaskForm({
           type="date"
           value={dueDate}
           onChange={(event) => setDueDate(event.target.value)}
-          required
           disabled={saving}
         />
         <label htmlFor="task-status">Statut</label>

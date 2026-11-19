@@ -4,7 +4,7 @@ export type Task = {
   title: string;
   description: string;
   status: TaskStatus;
-  dueDate: string;
+  dueDate: string | null;
 };
 export const statusLabels = {
   todo: "À faire",

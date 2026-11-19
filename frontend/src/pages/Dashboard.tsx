@@ -55,8 +55,10 @@ export default function Dashboard() {
       setSearch("");
       setOverdueOnly(false);
       setMobileStatus(created.status);
-      setMonth(created.dueDate.slice(0, 7));
-      if (view === "calendar") setSelectedDate(created.dueDate);
+      if (created.dueDate !== null) {
+        setMonth(created.dueDate.slice(0, 7));
+        if (view === "calendar") setSelectedDate(created.dueDate);
+      }
     }
     setError("");
   }
@@ -89,7 +91,7 @@ export default function Dashboard() {
         overdueOnly,
       }),
     )
-    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+    .sort((a, b) => (a.dueDate ?? "\uffff").localeCompare(b.dueDate ?? "\uffff"));
   const completed = tasks.filter((task) => task.status === "completed").length;
   const remaining = tasks.length - completed;
   let progressLabel = `${remaining} tâche${remaining > 1 ? "s" : ""} restante${remaining > 1 ? "s" : ""}`;
@@ -189,7 +191,7 @@ export default function Dashboard() {
         </div>
         {!loading && view === "calendar" && (
           <TaskCalendar
-            tasks={visibleTasks}
+            tasks={visibleTasks.filter((task) => task.dueDate !== null)}
             month={month}
             today={today}
             onMonthChange={setMonth}

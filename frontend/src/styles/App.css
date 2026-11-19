@@ -526,6 +526,65 @@
   text-decoration: none;
 }
 
+.auth-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 35px;
+}
+
+.auth-header .auth-brand {
+  margin-bottom: 0;
+}
+
+.auth-back {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: fit-content;
+  padding: 8px 11px;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background-color: var(--glass-bg);
+  box-shadow: 0 2px 8px var(--shadow-soft), inset 0 1px 0 var(--glass-highlight);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.auth-back svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .auth-back:hover {
+    border-color: color-mix(in srgb, var(--accent) 28%, var(--glass-border));
+    background-color: color-mix(in srgb, var(--glass-bg) 82%, var(--accent-soft));
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-back {
+    transition: none;
+  }
+
+  .auth-back:hover {
+    transform: none;
+  }
+}
+
 .auth-eyebrow {
   margin: 0 0 8px;
   color: var(--text-muted);
