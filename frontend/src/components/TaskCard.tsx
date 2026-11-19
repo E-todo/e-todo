@@ -43,6 +43,14 @@ export default function TaskCard({
       draggable={!pending}
       onDragStart={(event) => onDragStart(event, task.id)}
       onDragEnd={onDragEnd}
+      onClick={(event) => {
+        if (
+          event.target instanceof Element &&
+          event.target.closest("button, summary, details")
+        )
+          return;
+        onEdit(task);
+      }}
     >
       <div className="card-topline">
         <button
@@ -98,7 +106,12 @@ export default function TaskCard({
           </div>
         </details>
       </div>
-      <button type="button" className="card-open" onClick={() => onEdit(task)}>
+      <button
+        type="button"
+        className="card-open"
+        aria-label={`Modifier la tâche ${task.title}`}
+        onClick={() => onEdit(task)}
+      >
         <h3>{task.title}</h3>
         {task.description && (
           <p className="card-description">{task.description}</p>
