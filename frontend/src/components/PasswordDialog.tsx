@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { Xmark } from "iconoir-react";
 import { changePassword } from "../api/auth";
 import { useDialog } from "../hooks/useDialog";
+import PasswordInput from "./PasswordInput";
 
 type PasswordDialogProps = { onClose: () => void; onSuccess: () => void };
 
@@ -71,9 +72,8 @@ export default function PasswordDialog({
           Saisissez votre mot de passe actuel, puis le nouveau deux fois.
         </p>
         <label htmlFor="current-password">Mot de passe actuel</label>
-        <input
+        <PasswordInput
           id="current-password"
-          type="password"
           autoComplete="current-password"
           required
           value={currentPassword}
@@ -81,9 +81,8 @@ export default function PasswordDialog({
           disabled={saving}
         />
         <label htmlFor="new-password">Nouveau mot de passe</label>
-        <input
+        <PasswordInput
           id="new-password"
-          type="password"
           autoComplete="new-password"
           required
           minLength={8}
@@ -95,9 +94,8 @@ export default function PasswordDialog({
         <label htmlFor="confirm-password">
           Confirmer le nouveau mot de passe
         </label>
-        <input
+        <PasswordInput
           id="confirm-password"
-          type="password"
           autoComplete="new-password"
           required
           minLength={8}

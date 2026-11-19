@@ -491,6 +491,45 @@
   font-size: 13px;
 }
 
+.password-input {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.task-form .password-input input,
+.auth-form .password-input input {
+  padding-right: 48px;
+}
+
+.password-input-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.password-input-toggle:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.password-input-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
 .task-form input:focus,
 .task-form textarea:focus,
 .task-form select:focus {

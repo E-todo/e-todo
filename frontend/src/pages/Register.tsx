@@ -1,5 +1,6 @@
 import { getErrorMessage } from "../utils/errors";
 import BackButton from "../components/BackButton";
+import PasswordInput from "../components/PasswordInput";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { register } from "../api/auth";
@@ -80,9 +81,9 @@ export default function Register() {
           />
 
           <label htmlFor="register-password">Mot de passe</label>
-          <input
+          <PasswordInput
             id="register-password"
-            type="password"
+            autoComplete="new-password"
             placeholder="Choisis un mot de passe"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
