@@ -8,7 +8,8 @@ const db = createPool({
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
   connectionLimit: 10,
-  dateStrings: true
+  dateStrings: true,
+  ...(process.env.MYSQL_SSL === "true" ? { ssl: { rejectUnauthorized: true } } : {})
 });
 
 export default db;
