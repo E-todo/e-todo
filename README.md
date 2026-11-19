@@ -35,6 +35,8 @@ Application de gestion de tâches avec React, TypeScript, Express et MySQL (ou M
 
    Ouvrir l’adresse indiquée par Vite. `VITE_API_URL` dans `frontend/.env` doit pointer vers l’API (`http://localhost:3000` par défaut).
 
+En production, le frontend utilise `https://e-todo-api.vercel.app` si `VITE_API_URL` n'est pas définie. Sur Vercel, définir cette variable dans le projet frontend pour l'environnement Production, puis redéployer : Vite l'intègre au moment du build. Un build de production échoue si elle pointe vers localhost.
+
 Sous Linux ou macOS, utiliser `cp -n .env.example .env` à la place de la commande PowerShell. Les fichiers `.env` existants sont conservés et ne sont pas suivis par Git.
 
 ## Vérifications
