@@ -31,13 +31,17 @@ export default function TaskForm({
       setError("Le titre ne peut pas être vide.");
       return;
     }
+    if (!dueDate) {
+      setError("La date d’échéance est obligatoire.");
+      return;
+    }
     setSaving(true);
     setError("");
     try {
       await onSave({
         title: title.trim(),
         description: description.trim(),
-        dueDate: dueDate || null,
+        dueDate,
         status,
       });
       onClose();
@@ -92,10 +96,11 @@ export default function TaskForm({
           rows={5}
           disabled={saving}
         />
-        <label htmlFor="task-date">Date d’échéance</label>
+        <label htmlFor="task-date">Date d’échéance (obligatoire)</label>
         <input
           id="task-date"
           type="date"
+          required
           value={dueDate}
           onChange={(event) => setDueDate(event.target.value)}
           disabled={saving}
